@@ -81,5 +81,28 @@ npm run dev
 - 列表接口统一返回 `{ items, total, page, size }`，动作接口统一返回 `{ ok, message }`。
 - 状态流转只允许在 `app/services` 里改，路由层不做业务判断。
 
+## 去重调查：命中证据与采样归并
+
+去重规则不再只显示命中数，`backend/app/core/dedup_sample.py` 在折叠指纹的同时
+留存**可定位的命中证据**（来源、路径、行号、时间、原始内容），并把同指纹原行归并成
+可查询的重复组；同指纹但状态/路径或原始请求内容矛盾的原行进入**争议组**，任一原行
+都不会被折叠。前端入口：侧栏「去重调查（命中明细/采样）」或去重过滤、采样归并
+工作台顶部的「去重调查」按钮。
+
+| 接口 | 说明 |
+| --- | --- |
+| `GET /api/dedup/hits` | 可翻页的指纹命中明细，支持来源、指纹、时间范围、是否含争议组过滤 |
+| `GET /api/dedup/groups` / `GET /api/dedup/groups/{id}` | 重复组/争议组列表与组内全部原行 |
+| `GET /api/dedup/records/{record_id}/group` | 从一条原行反查所属重复组及来源位置 |
+| `POST /api/dedup/investigations` | 开启或按编号恢复一次调查 |
+| `POST /api/dedup/investigations/{id}/claims` | 领用经核验的重复组并冻结命中快照（争议组返回 409） |
+| `POST /api/dedup/investigations/{id}/sampling` | 按领用快照或补齐范围取最新代表；已交付依据不被迟到原行覆盖 |
+| `POST /api/dedup/sources/{source_id}/error` | 标记错误来源，采样候选自动排除 |
+| `POST /api/dedup/demo-seed` | 幂等装载演示证据（重复组、争议组、重传、跨来源场景） |
+
+调查采样只从经核验的真实重复组取代表；领用快照保证重启恢复与并发确认只保留本次
+调查的一份样本，刷新补全范围才能采到迟到的更新代表。核心场景见
+`backend/tests/test_investigation.py`。
+
 领域：数据工程
 子方向：数据采集、爬虫与RPA

@@ -238,6 +238,8 @@ class DedupFilter:
     fingerprint_algo: str = "sha256"
     hit_count: int = 0
     ignore_count: int = 0
+    # 同指纹但这些字段取值互相矛盾时，不做普通折叠，转入可定位的争议组。
+    contradiction_fields: list[str] = field(default_factory=list)
 
     def fingerprint(self, event: EventRecord) -> str:
         """基于去重字段生成事件指纹。"""

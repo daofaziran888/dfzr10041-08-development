@@ -6,6 +6,15 @@
         <p class="page-desc">{{ meta.desc }}</p>
       </div>
       <div class="page-actions">
+        <button
+          v-if="isInvestigationLinked"
+          class="btn"
+          data-testid="open-investigation"
+          type="button"
+          @click="goInvestigation"
+        >
+          去重调查：指纹命中明细与采样
+        </button>
         <button class="btn primary" data-testid="open-create" type="button" @click="openCreate">
           登记{{ meta.entity }}
         </button>
@@ -95,6 +104,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
   createEntry,
@@ -106,7 +116,15 @@ import {
 import type { EntryRow } from '@/data/types'
 
 const props = defineProps<{ moduleKey: string }>()
+const router = useRouter()
 const meta = moduleMeta(props.moduleKey)
+const isInvestigationLinked = computed(() =>
+  ['dedup_filter', 'sample_job'].includes(props.moduleKey),
+)
+
+function goInvestigation() {
+  void router.push('/dedup-investigation')
+}
 const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')

@@ -6,6 +6,9 @@
         <RouterLink v-for="item in navItems" :key="item.path" :to="item.path" class="nav-item">
           {{ item.label }}
         </RouterLink>
+        <RouterLink to="/dedup-investigation" class="nav-item nav-investigation">
+          去重调查（命中明细/采样）
+        </RouterLink>
       </nav>
     </aside>
     <main class="app-main">
